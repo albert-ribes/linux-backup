@@ -1,0 +1,39 @@
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+- CONFIGURED PARAMETERS:
+source_dirs='/home/projects/linux-backup/source1'
+target_dir='/home/projects/linux-backup/target'
+full_backup_path='/home/projects/linux-backup/target/inc/2001-12-28/'
+working_path='/home/projects/linux-backup'
+logs_path='/home/projects/linux-backup/logs'
+log_file='backup_2001-12-28-103030.log'
+anual_ret='12, monthly_ret='12, daily_ret'6
++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Timestamp: 2001-12-28_10:30:30
+[INFO]	Checking logs directory... 
+[INFO]	Checking root privileges... 
+[INFO]	Checking backup source directory... 
+[INFO]	Checking backup target directory... 
+[INFO]	Creating backup directories... 
+[INFO]	Checking disk space... 
+[INFO]	Executing rsync:
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+rsync -avh --progress --delete --link-dest=/home/projects/linux-backup/target/inc/2001-12-27 /home/projects/linux-backup/source1 /home/projects/linux-backup/target/inc/2001-12-28/ --log-file=/home/projects/linux-backup/logs/backup_2001-12-28-103030.log > /dev/null
+2001/12/28 10:30:30 [52607] building file list
+2001/12/28 10:30:30 [52607] created directory /home/projects/linux-backup/target/inc/2001-12-28
+2001/12/28 10:30:30 [52607] cd..t...... source1/folder1_2001/subfolder_12/
+2001/12/28 10:30:30 [52607] >f+++++++++ source1/folder1_2001/subfolder_12/foo_2001-12-28
+2001/12/28 10:30:30 [52607] sent 12.86K bytes  received 143 bytes  26.01K bytes/sec
+2001/12/28 10:30:30 [52607] total size is 4.05K  speedup is 0.31
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+[INFO]	Executing rsync:
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+rsync -avh --progress --delete --link-dest=/home/projects/linux-backup/target/inc/2001-12-27 /home/projects/linux-backup/source2 /home/projects/linux-backup/target/inc/2001-12-28/ --log-file=/home/projects/linux-backup/logs/backup_2001-12-28-103030.log > /dev/null
+2001/12/28 10:30:30 [52610] building file list
+2001/12/28 10:30:30 [52610] cd..t...... source2/folder2_2001/subfolder_12/
+2001/12/28 10:30:30 [52610] >f+++++++++ source2/folder2_2001/subfolder_12/foo_2001-12-28
+2001/12/28 10:30:30 [52610] sent 12.86K bytes  received 71 bytes  25.87K bytes/sec
+2001/12/28 10:30:30 [52610] total size is 4.05K  speedup is 0.31
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+[INFO]	Sending an e-mail
+Timestamp: 2001-12-28_10:30:30
+[INFO]	Program finished successfully

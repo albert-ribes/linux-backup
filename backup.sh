@@ -41,6 +41,9 @@ fi
 # VARIABLES
 #------------------------------------------
 . backup.conf
+working_path=${PWD} #"/usr/local/"
+logs_path="${working_path}/logs"
+
 
 version="0.1"
 author="Albert Ribes"
@@ -88,6 +91,13 @@ rotate_imtl_bkp="1" # Rotate copies.  1 = Yes   0 = No
 max_number_imtl_bkp="8" # Number of copies to preserve.
 tar_args="cpfJ"
 tar_exten=".tar.xz"
+
+# Check logs directory exists
+if [ ! -d ${logs_path} ]; then
+	mkdir ${logs_path}
+	echo -e "[INFO]	Creating logs directory '${logs_path}'.\n"
+fi
+
 
 if [ "$debug" = "true" ]; then
 	echo -e "+++++++++++++++++++++++++++++++++++++++++++++++++++++" >> $logs_path/$log_file
