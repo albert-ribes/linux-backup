@@ -1,3 +1,15 @@
 This program offers a snapshot-based backup solution for linux systems.
 
-It creates incremental backups from a list of source folders to a target folder and compresses and archives monthly and anual backups. 
+Usage: backup [OPTIONS]
+
+OPTIONS:
+-h, --help                      This help
+-t TYPE, --type TYPE            Where TYPE = [ full | inc ]
+
+With -t inc:
+
+It creates incremental backups from a list of source folders to a defined target folder under '/inc'. It compresses and archives monthly and anual backups under '/full'. 
+
+With -t full
+
+It creates a compressed single backupfrom a list of source folders to a defined target folder under '/full'.

@@ -1,42 +1,5 @@
 #!/bin/bash
 
-
-#------------------------------------------
-# GRAMMAR CHECKS
-#------------------------------------------
-
-if [ $# -eq 0 ]; then
-	help
-	exit 1
-else
-	#echo "$1"
-	if [ "$1" == "-h" -o "$1" == "--help" ]; then
-		help
-		exit 1
-	elif [ "$1" == "-t" -o "$1" == "--type" ]; then
-		if [ -z "$2" ]; then
-			echo -e "Please introduce the argument TYPE = [ full | inc ]\n"
-			exit 1
-		else
-			#echo "$2"
-			if [ "$2" != "full" -a "$2" != "inc" ]; then
-				echo -e "Wrong arguments supplied\n"
-				exit 1
-			else
-				type_backup=$2
-				if [ "$type_backup" == "full" ]; then
-					type_backup_short="full"
-				elif [ "$type_backup" == "inc" ]; then
-					type_backup_short="inc"
-				fi
-			fi
-		fi
-	else
-		echo -e "Wrong arguments supplied\n"
-		exit 1
-	fi
-fi
-
 #------------------------------------------
 # VARIABLES
 #------------------------------------------
@@ -82,8 +45,6 @@ set +f
 
 log_file="backup_${date}-$(date +%H%M%S).log"
 
-#Today's backup folder
-full_backup_path="${target_dir}/${type_backup}/${date}/"
 
 #imtl_bkp_dir="/root" # Copying directories
 compress_imtl_bkp="1" # Compress copies.  1 = Yes   0 = No
@@ -91,6 +52,79 @@ rotate_imtl_bkp="1" # Rotate copies.  1 = Yes   0 = No
 max_number_imtl_bkp="8" # Number of copies to preserve.
 tar_args="cpfJ"
 tar_exten=".tar.xz"
+
+#------------------------------------------
+# FUNCTIONS
+#------------------------------------------
+
+send_mail()
+{
+	if [ "$1" == "ok" ]; then
+		final_time=$(date +%H%M%S)
+		printf "Subject: ${type_backup} backup OK \
+		\n\nBackup from ${hostname} initiated at ${initial_time} finished succesfully at ${final_time}."\
+		| ssmtp albert.ribes@gmail.com >> $logs_path/$log_file
+	else
+		printf "Subject: ${type_backup} backup KO\n\n Something went wrong in the backup from ${hostname} initiated at ${initial_time}. \
+        Please review the log file ${logs_path}/${log_file}" | ssmtp albert.ribes@gmail.com >> $logs_path/$log_file
+	fi
+}
+
+help_me()
+{
+	echo -e "Backup utility v${version} by ${author}.\n"
+	echo -e "Usage: backup [OPTIONS]\n"
+	echo -e "OPTIONS:"
+	echo -e "-h, --help			This help"
+	echo -e "-t TYPE, --type TYPE		Where TYPE = [ full | inc ]\n"
+}
+
+end_function()
+{
+	#send_mail $status
+	exit 1
+}
+
+#------------------------------------------
+# GRAMMAR CHECKS
+#------------------------------------------
+
+if [ $# -eq 0 ]; then
+	help_me
+	exit 1
+else
+	#echo "$1"
+	if [ "$1" == "-h" -o "$1" == "--help" ]; then
+		help_me
+		exit 1
+	elif [ "$1" == "-t" -o "$1" == "--type" ]; then
+		if [ -z "$2" ]; then
+			echo -e "Please introduce the argument TYPE = [ full | inc ]\n"
+			exit 1
+		else
+			#echo "$2"
+			if [ "$2" != "full" -a "$2" != "inc" ]; then
+				echo -e "Wrong arguments supplied\n"
+				exit 1
+			else
+				type_backup=$2
+				if [ "$type_backup" == "full" ]; then
+					type_backup_short="full"
+				elif [ "$type_backup" == "inc" ]; then
+					type_backup_short="inc"
+				fi
+			#Today's backup folder
+			full_backup_path="${target_dir}/${type_backup}/${date}/"
+			fi
+		fi
+	
+	else
+		echo -e "Wrong arguments supplied\n"
+		exit 1
+	fi
+fi
+
+
 
 # Check logs directory exists
 if [ ! -d ${logs_path} ]; then
@@ -111,38 +145,6 @@ if [ "$debug" = "true" ]; then
 	echo -e "anual_ret='${monthly_ret}, monthly_ret='${monthly_ret}, daily_ret'${daily_ret}" >> $logs_path/$log_file
 	echo -e "+++++++++++++++++++++++++++++++++++++++++++++++++++++" >> $logs_path/$log_file
 fi
-
-#------------------------------------------
-# FUNCTIONS
-#------------------------------------------
-
-send_mail()
-{
-	if [ "$1" == "ok" ]; then
-		final_time=$(date +%H%M%S)
-		printf "Subject: ${type_backup} backup OK \
-		\n\nBackup from ${hostname} initiated at ${initial_time} finished succesfully at ${final_time}."\
-		| ssmtp albert.ribes@gmail.com >> $logs_path/$log_file
-	else
-		printf "Subject: ${type_backup} backup KO\n\n Something went wrong in the backup from ${hostname} initiated at ${initial_time}. \
-        Please review the log file ${logs_path}/${log_file}" | ssmtp albert.ribes@gmail.com >> $logs_path/$log_file
-	fi
-}
-
-help()
-{
-	echo -e "Backup utility v${version} by ${author}.\n"
-	echo -e "Usage: backup [OPTIONS]\n"
-	echo -e "OPTIONS:"
-	echo -e "-h, --help			This help"
-	echo -e "-t TYPE, --type TYPE		Where TYPE = [ full | inc ]\n"
-}
-
-end_function()
-{
-	#send_mail $status
-	exit 1
-}
 
 #------------------------------------------
 # MAIN PROGRAM
@@ -213,19 +215,22 @@ fi
 
 # BACKUP EXECUTION
 if [ "$type_backup" == "full" ]; then
-	options="-avh --progress --delete"
-	echo -e "[INFO]	Executing rsync" >> $logs_path/$log_file
-	echo -e "----------------------------------------------------" >> $logs_path/$log_file
-	rsync $options $source_dir $full_backup_path --log-file=$logs_path/$log_file > /dev/null
-	echo -e "----------------------------------------------------" >> $logs_path/$log_file
-	# Backup compression
-	echo -e "[INFO]	Compressing files" >> $logs_path/$log_file
-	tar -zcvf ${target_dir}/${type_backup}/${hostname}-${date}.tar.gz -C $full_backup_path . > /dev/null
-	rm -R $full_backup_path
-	# Delete old backups according to configured retention
-	#if [ "$type_backup" == "monthly" ]; then
-	#	(cd ${target_dir}/${type_backup} && ls -1tr | head -n -${monthly_ret} | xargs -d '\n' rm -r -f --)
-	#fi
+	for dir in "${source_dirs[@]}"
+	do
+		options="-avh --progress --delete"
+		echo -e "[INFO]	Executing rsync" >> $logs_path/$log_file
+		echo -e "----------------------------------------------------" >> $logs_path/$log_file
+		rsync $options $dir $full_backup_path --log-file=$logs_path/$log_file > /dev/null
+		echo -e "----------------------------------------------------" >> $logs_path/$log_file
+		# Backup compression
+		echo -e "[INFO]	Compressing files" >> $logs_path/$log_file
+		tar -zcvf ${target_dir}/full/${hostname}-FULL-${date}.tar.gz -C $full_backup_path . > /dev/null
+		rm -R $full_backup_path
+		# Delete old backups according to configured retention
+		#if [ "$type_backup" == "monthly" ]; then
+		#	(cd ${target_dir}/${type_backup} && ls -1tr | head -n -${monthly_ret} | xargs -d '\n' rm -r -f --)
+		#fi
+	done
 fi
 
 if [ "$type_backup" == "inc" ]; then
