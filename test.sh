@@ -1,7 +1,7 @@
 #!/bin/bash
-rm -R source*/*
-rm -R target/*
-rm -R logs/*
+rm -Rf source*/*
+rm -Rf target/*
+rm -Rf logs/*
 
 loop_conunt=0
 for year in {2000..2001}

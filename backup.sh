@@ -255,8 +255,10 @@ if [ "$type_backup" == "inc" ]; then
 		echo -e "tar -zcvf ${target_dir}/full/${hostname}-MONTHLY-${date}.tar.gz -C $full_backup_path . " >> $logs_path/$log_file
 		echo -e "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" >> $logs_path/$log_file
 		tar -zcvf ${target_dir}/full/${hostname}-MONTHLY-${date}.tar.gz -C $full_backup_path . > /dev/null
-		# Keep only 12 previous backups
-		(cd ${target_dir}/full && ls -1tr ${hostname}-MONTHLY* | head -n -12 | xargs -d '\n' rm -r -f --)
+		# Keep only ${monthly_ret} previous backups
+		if [ $monthly_ret != -1 ]; then
+			(cd ${target_dir}/full && ls -1tr ${hostname}-MONTHLY* | head -n -${monthly_ret} | xargs -d '\n' rm -r -f --)
+		fi
 	fi
 
 	#If it's the first day of the month, delete all the previous incremental backups and logs
@@ -266,7 +268,6 @@ if [ "$type_backup" == "inc" ]; then
 		#echo -e "rm -r ${target_dir}/inc/${year_previous_month}-${last_month}-*"
 		#echo -e "rm -rf ${target_dir}/inc/${year_previous_month}-${last_month}*"
 		rm -rf $target_dir/inc/$year_previous_month-$last_month* 
-
 		#echo -e "rm -rf $logs_path/backup_${year_previous_month}-${last_month}*"
 		rm -rf $logs_path/backup_${year_previous_month}-${last_month}*
 
@@ -280,6 +281,11 @@ if [ "$type_backup" == "inc" ]; then
 		# Backup compression
 		echo -e "[INFO]	Compressing files" >> $logs_path/$log_file
 		tar -zcvf ${target_dir}/full/${hostname}-ANUAL-${date}.tar.gz -C $full_backup_path . > /dev/null
+		# Keep only ${anual_ret} previous backups
+		if [ $anual_ret != -1 ]; then
+			(cd ${target_dir}/full && ls -1tr ${hostname}-ANUAL* | head -n -${anual_ret} | xargs -d '\n' rm -r -f --)
+		fi
+
 	fi
 fi
 : <<'END'
