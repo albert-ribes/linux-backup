@@ -1,4 +1,5 @@
 #!/bin/bash
+echo -e "Removing source*/*, target/*, logs/* ..."
 rm -Rf source*/*
 rm -Rf target/*
 rm -Rf logs/*
@@ -29,7 +30,7 @@ do
 			touch source2/folder2_${year}/subfolder_${month}/foo_${year}-${month}-${day}
 			echo "${random}" > source1/folder1_${year}/subfolder_${month}/foo_${year}-${month}-${day}
 			echo "${random}" > source2/folder2_${year}/subfolder_${month}/foo_${year}-${month}-${day}
-			./backup.sh -t inc
+			./backup.sh -t inc -f backup.conf
 			#if [ "${day}" == "31" -a "${month}" == "12" ]; then
 			#	./backup.sh -t full
 			#fi

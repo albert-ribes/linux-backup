@@ -3,7 +3,7 @@
 #------------------------------------------
 # VARIABLES
 #------------------------------------------
-. backup.conf
+#. backup.conf
 working_path=${PWD} #"/usr/local/"
 logs_path="${working_path}/logs"
 
@@ -30,18 +30,6 @@ initial_time=$(date +%H:%M:%S)
 
 # Hostname to add to the files.
 hostname="$(hostname)"
-
-
-#source_dirs="   /home/projects/backup/source3,      /home/projects/backup/source4 "
-source_dirs="$(echo -e "${source_dirs}" | tr -d '[:space:]')"
-set -f                      # avoid globbing (expansion of *).
-source_dirs=(${source_dirs//,/ })
-
-#for dir in "${!source_dirs[@]}"
-#do
-#    echo "$dir=>${source_dirs[dir]}"
-#done
-set +f
 
 log_file="backup_${date}-$(date +%H%M%S).log"
 
@@ -113,9 +101,16 @@ else
 				elif [ "$type_backup" == "inc" ]; then
 					type_backup_short="inc"
 				fi
-			#Today's backup folder
-			full_backup_path="${target_dir}/${type_backup}/${date}/"
 			fi
+		fi
+		if [ "$3" == "-f" -o "$3" == "--file" ]; then
+			if [ -f $4 ]; then
+				config_file=$4
+			else
+				echo -e "[ERROR] Configuration file NOT found.\n"
+				exit 1
+			fi
+			
 		fi
 	
 	else
@@ -124,7 +119,33 @@ else
 	fi
 fi
 
+if [ -f $4 ]; then
+	config_file=$4
+	echo -e "[INFO] Loading configuration file ${config_file}." >> $logs_path/$log_file
+	. $4
+else
+	echo -e "File ${config_file} NOT found. Exiting!"
+	exit 1
+fi
 
+#Today's backup folder
+full_backup_path="${target_dir}/${type_backup}/${date}/"
+
+#source_dirs="   /home/projects/backup/source3,      /home/projects/backup/source4 "
+source_dirs="$(echo -e "${source_dirs}" | tr -d '[:space:]')"
+set -f # avoid globbing (expansion of *).
+source_dirs=(${source_dirs//,/ })
+
+for dir in "${!source_dirs[@]}"
+do
+	#echo "$dir=>${source_dirs[dir]}"
+	if [ ! -d ${source_dirs[dir]} ]; then
+		echo -e "${source_dirs[dir]} does NOT exist. Exiting..."
+		exit 1
+    fi
+#>> $logs_path/$log_file
+done
+set +f
 
 # Check logs directory exists
 if [ ! -d ${logs_path} ]; then
@@ -132,11 +153,16 @@ if [ ! -d ${logs_path} ]; then
 	echo -e "[INFO]	Creating logs directory '${logs_path}'.\n"
 fi
 
-
 if [ "$debug" = "true" ]; then
 	echo -e "+++++++++++++++++++++++++++++++++++++++++++++++++++++" >> $logs_path/$log_file
 	echo -e "- CONFIGURED PARAMETERS:" >> $logs_path/$log_file
-	echo -e "source_dirs='${source_dirs}'" >> $logs_path/$log_file
+	#echo -e "source_dirs='${source_dirs}'" >> $logs_path/$log_file
+	set -f # avoid globbing (expansion of *).
+	for dir in "${!source_dirs[@]}"
+	do
+		echo "Source directory #$dir: ${source_dirs[dir]}" >> $logs_path/$log_file
+	done
+	set +f
 	echo -e "target_dir='${target_dir}'" >> $logs_path/$log_file
 	echo -e "full_backup_path='${full_backup_path}'" >> $logs_path/$log_file
 	echo -e "working_path='${working_path}'" >> $logs_path/$log_file
@@ -175,8 +201,8 @@ for dir in "${source_dirs[@]}"
 do
 	if [ ! -d ${dir} ]; then
 		printf "[ERROR]	Backup source directory '${dir}' NOT found. Exiting!\n\n" >> $logs_path/$log_file
-			status="ko"
-			end_function
+		status="ko"
+		end_function
 	fi
 done
 
@@ -203,11 +229,12 @@ if [ ! -d ${target_dir}/${type_backup} ]; then
   mkdir ${target_dir}/${type_backup}
 fi
 
+set +f
 # Check space in backup disk
 echo -e "[INFO]	Checking disk space... " >> $logs_path/$log_file
-diskusage=$(df -k $target_dir |awk '{print $5}' |sed '1d;s/%//')5
-if [ $diskusage -gt $diskspace ]
-	then
+diskusage=$(df -k $target_dir |awk '{print $5}' |sed '1d;s/%//')
+#echo -e "${diskusage}"
+if [ $diskusage -gt $diskspace ]; then
 	echo "[ERROR]	The destination disk for backups is full. Current disk usage ${diskusage}%." >> $logs_path/$log_file
 	status="ko"
 	end_function
@@ -239,6 +266,7 @@ if [ "$type_backup" == "inc" ]; then
 	do
 		#echo "$dir"
 		options="-avh --progress --delete"
+		#echo -e "Checking if directory exists: ${target_dir}/${type_backup}/${previous_day}"
 		if [ -d ${target_dir}/${type_backup}/${previous_day} ]; then
 			options="$options --link-dest=${target_dir}/${type_backup}/${previous_day}"
 		fi
