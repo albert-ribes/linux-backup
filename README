@@ -1,0 +1,3 @@
+This program offers a snapshot-based backup solution for linux systems.
+
+It creates incremental backups from a list of source folders to a target folder and compresses and archives monthly and anual backups. 
