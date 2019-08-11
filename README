@@ -1,6 +1,7 @@
 # linux-backup
-This program offers a snapshot-based backup solution for linux systems.
 
+A snapshot-based backup solution for linux systems.
+----------------------------------------------------------------------------------------------------------------------------
 Usage: backup [OPTIONS]
 
 OPTIONS:
@@ -14,3 +15,4 @@ It creates incremental backups from a list of source folders to a defined target
 With -t full
 
 It creates a compressed single backupfrom a list of source folders to a defined target folder under '/full'.
+----------------------------------------------------------------------------------------------------------------------------
